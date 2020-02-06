@@ -1,0 +1,85 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(:alexandria
+                             :serapeum
+                             :iterate
+                             :cl-annot
+                             :cl-debug-time) :silent t))
+
+(defpackage :ros.script.bignum-bench.3789445726
+  (:use :cl)
+  (:import-from #:cl-annot
+                #:enable-annot-syntax)
+  (:import-from #:cl-debug-time
+                #:with-measure-time)
+  (:import-from #:iterate
+                #:iter
+                #:for
+                #:from
+                #:to
+                #:in
+                #:below
+                #:collect))
+(in-package :ros.script.bignum-bench.3789445726)
+
+(enable-annot-syntax)
+
+(defun main (&rest argv)
+  (declare (ignorable argv)
+           (optimize speed))
+  (iter (for digit in '(1 2 3 4 5 10 20 30 40 50 100 200 300 400 500 1000 2000 3000 4000 5000))
+    (format *trace-output* "digit ~A~%" digit)
+    (let ((rs (iter (for i below 1000000)
+                (collect (random (expt 10 digit))))))
+      (format *trace-output* "nop~%")
+      (with-measure-time :ms
+        (loop for r in rs))
+      (format *trace-output* "nop~%")
+      (with-measure-time :ms
+        (iter (for r in rs)))
+      (format *trace-output* "1+ r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (1+ r)))
+      (format *trace-output* "1- r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (1- r)))
+      (format *trace-output* "+ r r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (+ r r)))
+      (format *trace-output* "* 1 r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (* 1 r)))
+      (format *trace-output* "* 2 r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (* 2 r)))
+      (format *trace-output* "* r r~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (* r r)))
+      (format *trace-output* "ash r 1~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (ash r 1)))
+      (format *trace-output* "ash r -1~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (ash r -1)))
+      (format *trace-output* "/ r 1~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (/ r 1)))
+      (format *trace-output* "/ r 2~%")
+      (with-measure-time :ms
+        (iter (for r in rs)
+          (/ r 2))))))
+;;; vim: set ft=lisp lisp:
