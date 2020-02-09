@@ -31,6 +31,7 @@ exec ros -Q -- $0 "$@"
 (enable-annot-syntax)
 
 (defun bench (digit)
+  (declare (optimize (speed 3)))
   (format *trace-output* "digit ~A~%" digit)
   (let ((rs (with-measure-time ("random " :ms)
               (iter (for i below 100000)
@@ -51,6 +52,8 @@ exec ros -Q -- $0 "$@"
       (with-mt-gc "iter nop")
       (with-mt-gc "1+ r" (setf result (1+ r)))
       (with-mt-gc "1- r" (setf result (1- r)))
+      (with-mt-gc "+ 1 r" (setf result (+ 1 r)))
+      (with-mt-gc "+ 2 r" (setf result (+ 2 r)))
       (with-mt-gc "+ r r" (setf result (+ r r)))
       (with-mt-gc "* 1 r" (setf result (* 1 r)))
       (with-mt-gc "* 2 r" (setf result (* 2 r)))
@@ -58,11 +61,11 @@ exec ros -Q -- $0 "$@"
       (with-mt-gc "ash r 1" (setf result (ash r 1)))
       (with-mt-gc "ash r -1" (setf result (ash r -1)))
       (with-mt-gc "/ r 1" (setf result (/ r 1)))
-      (with-mt-gc "/ r 2" (setf result (/ r 2))))))
+      (with-mt-gc "/ r 2" (setf result (/ r 2)))
+      (with-mt-gc "/ r r" (setf result (/ r r))))))
 
 (defun main (&rest argv)
-  (declare (ignorable argv)
-           (optimize speed))
+  (declare (ignorable argv))
   (iter (for digit in '(1 2 3 4 5
                         10 20 30 40 50
                         100 200 300 400 500
